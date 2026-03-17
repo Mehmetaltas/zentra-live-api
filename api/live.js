@@ -8,10 +8,11 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 🔹 MOCK + REAL MIX (V2 başlangıç)
     const markets = {
-      oil: 82.4,
-      gold: 2188.2,
-      sp500: 5128.4,
+      oil: await getOil(),
+      gold: await getGold(),
+      sp500: await getSP(),
       interestRate: 4.75,
       shipping: 1460
     };
@@ -22,8 +23,7 @@ export default async function handler(req, res) {
       signals.push({
         title: "Energy Pressure",
         severity: "high",
-        category: "energy",
-        summary: "Energy markets under pressure due to elevated oil prices."
+        summary: "Oil above threshold"
       });
     }
 
@@ -31,37 +31,25 @@ export default async function handler(req, res) {
       signals.push({
         title: "Logistics Stress",
         severity: "medium",
-        category: "logistics",
-        summary: "Shipping costs remain elevated across key routes."
+        summary: "Shipping pressure"
       });
     }
 
-    if (signals.length === 0) {
-      signals.push({
-        title: "Stable Conditions",
-        severity: "low",
-        category: "system",
-        summary: "Markets are currently stable."
-      });
-    }
-
-    const data = {
-      system: {
-        name: "ZENTRA",
-        mode: "LIVE",
-        status: "operational"
-      },
+    return res.status(200).json({
+      system: { name: "ZENTRA", mode: "LIVE", status: "operational" },
       markets,
       signals,
-      dominantDriver: signals[0].title,
+      dominantDriver: signals[0]?.title || "None",
+      source: "live-data-engine",
       updatedAt: new Date().toISOString()
-    };
-
-    return res.status(200).json(data);
-  } catch (error) {
-    return res.status(500).json({
-      error: "live data error",
-      message: String(error)
     });
+
+  } catch (e) {
+    return res.status(500).json({ error: String(e) });
   }
 }
+
+// 🔹 GEÇİCİ DATA (sonra gerçek API bağlanacak)
+async function getOil(){ return 82.4 }
+async function getGold(){ return 2188.2 }
+async function getSP(){ return 5128.4 }
